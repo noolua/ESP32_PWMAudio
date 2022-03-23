@@ -30,7 +30,7 @@ void setup()
   out->SetRate(22050);
   file[0] = new AudioFileSourcePROGMEM(ring3_mp3, ring3_mp3_len);
   mp3 = new AudioGeneratorMP3();
-  mixer = new AudioOutputMixer(128, out);
+  mixer = new AudioOutputMixer(64, out);
   stub[0] = mixer->NewInput();
   Serial.printf("mp3 start: %lu\n", millis());
   mp3->begin(file[0], stub[0]);
