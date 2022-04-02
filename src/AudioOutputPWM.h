@@ -4,12 +4,23 @@
 #include <AudioOutput.h>
 #include "pwm_audio.h"
 #define CACHED_COUNT    (32)       // 32, 64, 96 is good for test, 128 will make noise. why???
+#ifndef DEVICEC3
+typedef int16_t pwm_audio_t;
+#define sample2pwm(s)     (s)
+#define TIMER_BITS        LEDC_TIMER_10_BIT
+#define AUDIO_BITS        LEDC_TIMER_16_BIT
+#else
+typedef uint8_t pwm_audio_t;
+#define sample2pwm(s)     uint8_t(((int(s)+32768) >> 8) & 0xFF)
+#define TIMER_BITS        LEDC_TIMER_8_BIT
+#define AUDIO_BITS        LEDC_TIMER_8_BIT
+#endif
 
 class AudioOutputPWM : public AudioOutput {
 protected:
   static bool _inited;
   int8_t _gpio_left, _gpio_right;
-  int16_t _cached_samples[CACHED_COUNT];
+  pwm_audio_t _cached_samples[CACHED_COUNT];
   int32_t _cached_count;
 public:
   AudioOutputPWM(const int8_t gpio_left, const int8_t gpio_right=-1){
@@ -28,7 +39,7 @@ public:
     if(!_inited){
       _inited = true;
       pwm_audio_config_t pac;
-      pac.duty_resolution = LEDC_TIMER_10_BIT;
+      pac.duty_resolution = TIMER_BITS;
       pac.gpio_num_left = _gpio_left;
       pac.ledc_channel_left = LEDC_CHANNEL_0;
       pac.gpio_num_right = _gpio_right;
@@ -40,7 +51,7 @@ public:
       pwm_audio_init(&pac);
       // Serial.printf("sample rate : %d, bps: %d, channels: %d\n", hertz, bps, channels);
     }
-    pwm_audio_set_param(hertz, LEDC_TIMER_16_BIT, _gpio_right != -1 ? 2 : 1);
+    pwm_audio_set_param(hertz, AUDIO_BITS, _gpio_right != -1 ? 2 : 1);
     pwm_audio_start();
     return true;
   }
@@ -48,22 +59,22 @@ public:
     size_t cnt = 0;
     bool  ok = false;
     if(_cached_count >= CACHED_COUNT){
-      pwm_audio_write((uint8_t*)_cached_samples, sizeof(int16_t) * _cached_count, &cnt, 0);
+      pwm_audio_write((uint8_t*)_cached_samples, sizeof(pwm_audio_t) * _cached_count, &cnt, 0);
       if(cnt > 0){
-        _cached_count -= (cnt / sizeof(int16_t));
+        _cached_count -= (cnt / sizeof(pwm_audio_t));
       }
     }
     if(channels == 2){
       if(_cached_count + 1 < CACHED_COUNT){
-        _cached_samples[_cached_count] = sample[0];
+        _cached_samples[_cached_count] = sample2pwm(sample[0]);
         _cached_count++;
-        _cached_samples[_cached_count] = sample[1];
+        _cached_samples[_cached_count] = sample2pwm(sample[1]);
         _cached_count++;
         ok = true;
       }
     }else{
       if(_cached_count < CACHED_COUNT){
-        _cached_samples[_cached_count] = sample[0];
+        _cached_samples[_cached_count] = sample2pwm(sample[0]);
         _cached_count++;
         ok = true;
       }

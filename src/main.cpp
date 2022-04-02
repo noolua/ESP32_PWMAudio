@@ -1,11 +1,18 @@
 #include <Arduino.h>
-#define CONFIG_LEFT_CHANNEL_GPIO 25
 #include "AudioOutputPWM.h"
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioGeneratorWAV.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputULP.h"
+#ifndef DEVICEC3
 #include "report.h"
+#define CONFIG_LEFT_CHANNEL_GPIO 25
+#define wav_data report_wav
+#else
+#include "report8.h"
+#define CONFIG_LEFT_CHANNEL_GPIO 10
+#define wav_data report8_wav
+#endif
 #include "ring3mp3.h"
 #include "AudioOutputMixer.h"
 
@@ -54,7 +61,7 @@ void loop()
       Serial.printf("wav begin: %lu\n", millis());
       stub[1] = mixer->NewInput();
       wav = new AudioGeneratorWAV();
-      file[1] = new AudioFileSourcePROGMEM( report_wav, sizeof(report_wav) );
+      file[1] = new AudioFileSourcePROGMEM(wav_data, sizeof(wav_data));
       wav->begin(file[1], stub[1]);
       wav_go = true;
     }
