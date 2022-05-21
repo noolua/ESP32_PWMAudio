@@ -4,17 +4,10 @@
 #include <AudioOutput.h>
 #include "pwm_audio.h"
 #define CACHED_COUNT    (32)       // 32, 64, 96 is good for test, 128 will make noise. why???
-#ifndef PWM_8BIT_AUDIO
 typedef int16_t pwm_audio_t;
 #define sample2pwm(s)     (s)
 #define TIMER_BITS        LEDC_TIMER_10_BIT
-#define AUDIO_BITS        LEDC_TIMER_16_BIT
-#else
-typedef uint8_t pwm_audio_t;
-#define sample2pwm(s)     uint8_t(((int(s)+32768) >> 8) & 0xFF)
-#define TIMER_BITS        LEDC_TIMER_8_BIT
-#define AUDIO_BITS        LEDC_TIMER_8_BIT
-#endif
+#define AUDIO_BITS        PWM_AUDIO_16BITS
 
 class AudioOutputPWM : public AudioOutput {
 protected:

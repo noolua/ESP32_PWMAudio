@@ -518,7 +518,7 @@ esp_err_t pwm_audio_init(const pwm_audio_config_t *cfg)
     return res;
 }
 
-esp_err_t pwm_audio_set_param(int rate, ledc_timer_bit_t bits, int ch)
+esp_err_t pwm_audio_set_param(int rate, pwm_audio_bits_t bits, int ch)
 {
     esp_err_t res = ESP_OK;
 

@@ -4,15 +4,9 @@
 #include "AudioGeneratorWAV.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputULP.h"
-#ifndef PWM_8BIT_AUDIO
 #include "report.h"
-#define CONFIG_LEFT_CHANNEL_GPIO 19
+#define CONFIG_LEFT_CHANNEL_GPIO 13
 #define wav_data report_wav
-#else
-#include "report8.h"
-#define CONFIG_LEFT_CHANNEL_GPIO 19
-#define wav_data report8_wav
-#endif
 #include "ring3mp3.h"
 #include "AudioOutputMixer.h"
 

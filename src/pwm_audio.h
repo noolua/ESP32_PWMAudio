@@ -60,6 +60,17 @@ typedef enum {
 } pwm_audio_channel_t;
 
 /**
+ * @brief pwm audio bits
+ *
+ */
+typedef enum {
+    PWM_AUDIO_8BITS          = 8,        /*!< 8 bits audio */
+    PWM_AUDIO_16BITS         = 16,       /*!< 16 bits audio */
+    PWM_AUDIO_32BITS         = 32,       /*!< 32 bits audio */
+} pwm_audio_bits_t;
+
+
+/**
  * @brief Initializes and configure the pwm audio.
  * 
  * @param cfg configurations - see pwm_audio_config_t struct
@@ -136,7 +147,7 @@ esp_err_t pwm_audio_write(uint8_t *inbuf, size_t len, size_t *bytes_written, Tic
  *     - ESP_OK              Success
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
-esp_err_t pwm_audio_set_param(int rate, ledc_timer_bit_t bits, int ch);
+esp_err_t pwm_audio_set_param(int rate, pwm_audio_bits_t bits, int ch);
 
 /**
  * @brief Set sample rate
