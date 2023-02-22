@@ -4,6 +4,7 @@
 #include "AudioGeneratorWAV.h"
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputULP.h"
+#include "AudioOutputI2S.h"
 #include "report.h"
 #ifndef CONFIG_LEFT_CHANNEL_GPIO
 #define CONFIG_LEFT_CHANNEL_GPIO 13
@@ -18,8 +19,16 @@ AudioGeneratorWAV *wav;
 // AudioGeneratorMP3 *mp3;
 AudioGeneratorMonoAAC *mp3;
 AudioFileSourcePROGMEM *file[2];
+#ifdef USE_I2S_OUTPUT
+AudioOutputI2S *out;
+#define AD_PIN_LRC  6
+#define AD_PIN_CLK  7
+#define AD_PIN_DIN  8
+#else
 AudioOutputPWM *out;
+#endif
 // AudioOutputULP *out;
+
 
 AudioOutputMixer *mixer;
 AudioOutputMixerStub *stub[2];
@@ -32,7 +41,13 @@ void setup()
 
   audioLogger = &Serial;
   // out = new AudioOutputULP(1);
+  #ifdef USE_I2S_OUTPUT
+  out = new AudioOutputI2S();
+  out->SetPinout(AD_PIN_CLK, AD_PIN_LRC, AD_PIN_DIN);
+  out->SetOutputModeMono(true);
+  #else
   out = new AudioOutputPWM(CONFIG_LEFT_CHANNEL_GPIO);
+  #endif
   out->SetRate(22050);
   // file[0] = new AudioFileSourcePROGMEM(ring3_mp3, ring3_mp3_len);
   // mp3 = new AudioGeneratorMP3();
