@@ -5,13 +5,18 @@
 #include "AudioGeneratorMP3.h"
 #include "AudioOutputULP.h"
 #include "report.h"
+#ifndef CONFIG_LEFT_CHANNEL_GPIO
 #define CONFIG_LEFT_CHANNEL_GPIO 13
+#endif
 #define wav_data report_wav
 #include "ring3mp3.h"
 #include "AudioOutputMixer.h"
+#include "bgmusic.h"
+#include "AudioGeneratorMonoAAC.h"
 
 AudioGeneratorWAV *wav;
-AudioGeneratorMP3 *mp3;
+// AudioGeneratorMP3 *mp3;
+AudioGeneratorMonoAAC *mp3;
 AudioFileSourcePROGMEM *file[2];
 AudioOutputPWM *out;
 // AudioOutputULP *out;
@@ -29,8 +34,10 @@ void setup()
   // out = new AudioOutputULP(1);
   out = new AudioOutputPWM(CONFIG_LEFT_CHANNEL_GPIO);
   out->SetRate(22050);
-  file[0] = new AudioFileSourcePROGMEM(ring3_mp3, ring3_mp3_len);
-  mp3 = new AudioGeneratorMP3();
+  // file[0] = new AudioFileSourcePROGMEM(ring3_mp3, ring3_mp3_len);
+  // mp3 = new AudioGeneratorMP3();
+  file[0] = new AudioFileSourcePROGMEM(bgm00_aac, sizeof(bgm00_aac));
+  mp3= new AudioGeneratorMonoAAC();
   mixer = new AudioOutputMixer(64, out);
   stub[0] = mixer->NewInput();
   Serial.printf("mp3 start: %lu\n", millis());
