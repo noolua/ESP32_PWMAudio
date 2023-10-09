@@ -644,7 +644,7 @@ esp_err_t IRAM_ATTR pwm_audio_write(uint8_t *inbuf, size_t inbuf_len, size_t *by
             case 16: {
                 len >>= 1;
                 uint16_t *buf_16b = (uint16_t *)inbuf;
-                static uint16_t value_16b;
+                uint16_t value_16b;
                 int16_t temp;
 
                 if (handle->config.duty_resolution > 8) {

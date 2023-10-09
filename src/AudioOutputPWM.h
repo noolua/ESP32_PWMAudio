@@ -5,7 +5,7 @@
 #include "pwm_audio.h"
 #define CACHED_COUNT    (32)       // 32, 64, 96 is good for test, 128 will make noise. why???
 typedef int16_t pwm_audio_t;
-#define sample2pwm(s)     (s)
+#define sample2pwm(s)     Amplify(s)
 #define TIMER_BITS        LEDC_TIMER_10_BIT
 #define AUDIO_BITS        PWM_AUDIO_16BITS
 
@@ -17,12 +17,10 @@ protected:
   int32_t _cached_count;
 public:
   AudioOutputPWM(const int8_t gpio_left, const int8_t gpio_right=-1){
-    hertz = 22050;
+    hertz = 44100;
     bps = 16;
-    channels = 1;
+    channels = 2;
     _cached_count = 0;
-    if(gpio_right != -1)
-      channels = 2;
     _gpio_left = gpio_left;
     _gpio_right = gpio_right;
     // _inited = false;
@@ -44,8 +42,20 @@ public:
       pwm_audio_init(&pac);
       // Serial.printf("sample rate : %d, bps: %d, channels: %d\n", hertz, bps, channels);
     }
-    pwm_audio_set_param(hertz, AUDIO_BITS, _gpio_right != -1 ? 2 : 1);
+    pwm_audio_set_param(hertz, AUDIO_BITS, channels);
     pwm_audio_start();
+    // Serial.printf("AudioOutputPWM.begin: %dHz \n", hertz);    
+    return true;
+  }
+  virtual bool SetRate(int hz) { 
+    esp_err_t err = ESP_OK;
+    if(hertz != hz){
+      hertz = hz;
+      pwm_audio_stop();
+      err = pwm_audio_set_sample_rate(hertz);
+      pwm_audio_start();
+      // Serial.printf("AudioOutputPWM.SetRate: %dHz, err: %d\n", hertz, err);
+    }
     return true;
   }
   virtual bool ConsumeSample(int16_t sample[2]) {
@@ -59,6 +69,10 @@ public:
     }
     if(channels == 2){
       if(_cached_count + 1 < CACHED_COUNT){
+        if(_gpio_right == -1){
+          int32_t ttl = sample[LEFTCHANNEL] + sample[RIGHTCHANNEL];
+          sample[LEFTCHANNEL] = sample[RIGHTCHANNEL] = (ttl>>1) & 0xffff;
+        }
         _cached_samples[_cached_count] = sample2pwm(sample[0]);
         _cached_count++;
         _cached_samples[_cached_count] = sample2pwm(sample[1]);
